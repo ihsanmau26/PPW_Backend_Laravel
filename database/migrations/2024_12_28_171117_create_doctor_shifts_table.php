@@ -13,16 +13,15 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('users', function (Blueprint $table) {
+        Schema::create('doctor_shifts', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
-            $table->enum('role', ['admin', 'doctor', 'patient'])->default('patient');
-            $table->rememberToken();
+            $table->unsignedBigInteger('doctor_id');
+            $table->unsignedBigInteger('shift_id');
             $table->timestamps();
-        });  
+
+            $table->foreign('doctor_id')->references('id')->on('doctors')->onDelete('restrict');
+            $table->foreign('shift_id')->references('id')->on('shifts')->onDelete('restrict');
+        });
     }
 
     /**
@@ -32,6 +31,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('users');
+        Schema::dropIfExists('doctor_shifts');
     }
 };

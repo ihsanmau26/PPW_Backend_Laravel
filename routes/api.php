@@ -7,6 +7,9 @@ use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\PasswordController;
 use App\Http\Controllers\AuthenticationController;
+use App\Http\Controllers\PrescriptionController;
+use App\Http\Controllers\CheckupHistoryController;
+use App\Http\Controllers\PrescriptionDetailController;
 
 /*
 |--------------------------------------------------------------------------
@@ -40,4 +43,22 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/comments', [CommentController::class, 'store']);
     Route::patch('/comments/{id}', [CommentController::class, 'update'])->middleware('comment-owner');
     Route::delete('/comments/{id}', [CommentController::class, 'destroy'])->middleware('comment-owner');
+
+    Route::get('/prescriptions', [PrescriptionController::class, 'index'])->middleware('admin-or-doctor');
+    Route::get('/prescriptions/{id}', [PrescriptionController::class, 'show'])->middleware('admin-or-doctor');
+    Route::post('/prescriptions', [PrescriptionController::class, 'store'])->middleware('admin-or-doctor');
+    Route::patch('/prescriptions/{id}', [PrescriptionController::class, 'update'])->middleware('admin-or-doctor');
+    Route::delete('/prescriptions/{id}', [PrescriptionController::class, 'destroy'])->middleware('admin-or-doctor');
+
+    Route::get('/prescription-details/{id}', [PrescriptionDetailController::class, 'show'])->middleware('admin-or-doctor');
+    Route::get('/prescription-details', [PrescriptionDetailController::class, 'index'])->middleware('admin-or-doctor');
+    Route::post('/prescription-details', [PrescriptionDetailController::class, 'store'])->middleware('admin-or-doctor');
+    Route::patch('/prescription-details/{id}', [PrescriptionDetailController::class, 'update'])->middleware('admin-or-doctor');
+    Route::delete('/prescription-details/{id}', [PrescriptionDetailController::class, 'destroy'])->middleware('admin-or-doctor');
+
+    Route::get('/checkup-histories/{id}', [CheckupHistoryController::class, 'show'])->middleware('checkup-history-owner');
+    Route::get('/checkup-histories', [CheckupHistoryController::class, 'index'])->middleware('admin-only');
+    Route::post('/checkup-histories', [CheckupHistoryController::class, 'store'])->middleware('checkup-history-owner');
+    Route::patch('/checkup-histories/{id}', [CheckupHistoryController::class, 'update'])->middleware('checkup-history-owner');
+    Route::delete('/checkup-histories/{id}', [CheckupHistoryController::class, 'destroy'])->middleware('checkup-history-owner');
 });

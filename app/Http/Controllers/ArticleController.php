@@ -75,9 +75,17 @@ class ArticleController extends Controller
     public function destroy($id)
     {
         $article = Article::findOrFail($id);
+
+        if ($article->image && Storage::exists('public/image/' . $article->image)) {
+            Storage::delete('public/image/' . $article->image);
+        }
+
         $article->delete();
 
-        return new ArticleResource($article->loadMissing('author:id,name'));
+        return response()->json([
+            'success' => true,
+            'message' => 'Artikel dan gambar berhasil dihapus',
+        ]);
     }
 
     function generateRandomString($length = 30) {

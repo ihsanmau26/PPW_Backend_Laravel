@@ -6,11 +6,14 @@ use Carbon\Carbon;
 use App\Models\User;
 use App\Models\Shift;
 use App\Models\Doctor;
+use App\Models\Patient;
 use App\Models\DoctorShift;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Resources\DoctorResource;
+use App\Http\Resources\PatientResource;
 use App\Http\Resources\DoctorDetailResource;
+use App\Http\Resources\PatientDetailResource;
 
 class UserController extends Controller
 {
@@ -31,6 +34,12 @@ class UserController extends Controller
         return DoctorResource::collection($doctors);
     }
 
+    public function indexPatients()
+    {
+        $patients = User::where('role', 'patient')->with('patient')->get();
+        return PatientResource::collection($patients);
+    }
+
     public function showAdmin($id)
     {
         $admin = User::where('role', 'admin')->findOrFail($id);
@@ -47,6 +56,54 @@ class UserController extends Controller
                 ->findOrFail($id);
 
         return new DoctorDetailResource($user->doctor);
+    }
+
+    public function showPatient($id)
+    {
+        $patient = User::where('role', 'patient')
+                    ->with([
+                        'patient',
+                        'patient.checkups',
+                        'patient.checkups.checkup_histories',
+                        'patient.checkups.checkup_histories.prescription',
+                        'patient.checkups.checkup_histories.prescription.doctor',
+                    ])
+                    ->findOrFail($id);
+
+        return new PatientDetailResource($patient);
+    }
+
+    public function storePatient(Request $request)
+    {
+        $validatedData = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|string|min:8',
+            'gender' => 'required|in:Male,Female',
+            'date_of_birth' => 'required|date',
+            'phone_number' => 'required|string',
+        ]);
+
+        $dateOfBirth = Carbon::parse($validatedData['date_of_birth']);
+        $age = $dateOfBirth->age;
+
+        $user = User::create([
+            'name' => $validatedData['name'],
+            'email' => $validatedData['email'],
+            'password' => $validatedData['password'],
+            'role' => 'patient',
+        ]);
+
+        $patient = Patient::create([
+            'user_id' => $user->id,
+            'gender' => $validatedData['gender'],
+            'age' => $age,
+            'date_of_birth' => $validatedData['date_of_birth'],
+            'phone_number' => $validatedData['phone_number'],
+        ]);
+
+        return response()->json(['message' => 'Patient added successfully'], 200)
+                        ->header('Access-Control-Allow-Origin', '*');
     }
 
     public function storeDoctor(Request $request)
@@ -82,6 +139,34 @@ class UserController extends Controller
         return response()->json(['message' => 'Doctor added successfully']);
     }
 
+    public function editPatient(Request $request, $id)
+    {
+        $patient = User::where('role', 'patient')->with('patient')->findOrFail($id);
+        $user = $patient;
+
+        $validatedData = $request->validate([
+            'name' => 'required|string|max:255',
+            'gender' => 'required|in:Male,Female',
+            'date_of_birth' => 'required|date',
+            'phone_number' => 'required|string',
+        ]);
+
+        $dateOfBirth = Carbon::parse($validatedData['date_of_birth']);
+        $age = $dateOfBirth->age;
+
+        $user->name = $validatedData['name'];
+        $user->save();
+
+        $user->patient->update([
+            'gender' => $validatedData['gender'],
+            'age' => $age,
+            'date_of_birth' => $validatedData['date_of_birth'],
+            'phone_number' => $validatedData['phone_number'],
+        ]);
+
+        return response()->json(['message' => 'Patient edited successfully']);
+    }
+
     public function editDoctor(Request $request, $id)
     {
         $doctor = User::where('role', 'doctor')->with('doctor.shifts')->find($id);
@@ -111,6 +196,17 @@ class UserController extends Controller
         }
 
         return response()->json(['message' => 'Doctor edited successfully']);
+    }
+
+    public function deletePatient($id)
+    {
+        $patient = Patient::findOrFail($id);
+        $user = $patient->user;
+
+        $patient->delete();
+        $user->delete();
+
+        return response()->json(['message' => 'Patient deleted successfully']);
     }
 
     public function deleteDoctor($id)

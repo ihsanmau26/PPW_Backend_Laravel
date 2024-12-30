@@ -1,13 +1,19 @@
 <?php
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\ShiftController;
+use App\Http\Controllers\DoctorController;
 use App\Http\Controllers\ArticleController;
+use App\Http\Controllers\CheckupController;
 use App\Http\Controllers\CommentController;
+use App\Services\DoctorAvailabilityService;
+use App\Http\Controllers\MedicineController;
 use App\Http\Controllers\PasswordController;
-use App\Http\Controllers\AuthenticationController;
 use App\Http\Controllers\PrescriptionController;
+use App\Http\Controllers\AuthenticationController;
 use App\Http\Controllers\CheckupHistoryController;
 use App\Http\Controllers\PrescriptionDetailController;
 
@@ -26,18 +32,30 @@ Route::post('/login', [AuthenticationController::class, 'login']);
 Route::post('/forgot-password', [PasswordController::class, 'forgotPassword']);
 Route::post('/reset-password', [PasswordController::class, 'resetPassword']);
 
+Route::post('/users/patients', [UserController::class, 'storePatient']);
+
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/logout', [AuthenticationController::class, 'logout']);
     Route::get('/me', [AuthenticationController::class, 'me']);
-    Route::post('/change-password', [PasswordController::class, 'changePassword'])->middleware('account-owner');
+    Route::post('/change-password', [PasswordController::class, 'changePassword']);
 
     Route::get('/users/admins', [UserController::class, 'indexAdmins'])->middleware('admin-only');
     Route::get('/users/doctors', [UserController::class, 'indexDoctors'])->middleware('admin-only');
+    Route::get('/users/patients', [UserController::class, 'indexPatients'])->middleware('admin-only');
     Route::get('/users/admins/{id}', [UserController::class, 'showAdmin'])->middleware('admin-only');
     Route::get('/users/doctors/{id}', [UserController::class, 'showDoctor'])->middleware('account-owner');
+    Route::get('/users/patients/{id}', [UserController::class, 'showPatient'])->middleware('account-owner');
     Route::post('/users/doctors', [UserController::class, 'storeDoctor'])->middleware('admin-only');
+    Route::patch('/users/patients/{id}', [UserController::class, 'editPatient'])->middleware('account-owner');
     Route::patch('/users/doctors/{id}', [UserController::class, 'editDoctor'])->middleware('account-owner');
+    Route::delete('/users/patients/{id}', [UserController::class, 'deletePatient'])->middleware('admin-only');
     Route::delete('/users/doctors/{id}', [UserController::class, 'deleteDoctor'])->middleware('admin-only');
+
+    Route::get('/shifts', [ShiftController::class, 'getShifts']);
+    Route::get('/shifts/{id}', [ShiftController::class, 'show']);
+    Route::post('/shifts', [ShiftController::class, 'store'])->middleware('admin-only');
+    Route::patch('/shifts/{id}', [ShiftController::class, 'update'])->middleware('admin-only');
+    Route::delete('/shifts/{id}', [ShiftController::class, 'destroy'])->middleware('admin-only');
 
     Route::get('/articles', [ArticleController::class, 'index']);
     Route::get('/articles/{id}', [ArticleController::class, 'show']);
@@ -50,6 +68,15 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::delete('/comments/{id}', [CommentController::class, 'destroy'])->middleware('comment-owner');
 
     Route::get('/available-doctors', [DoctorController::class, 'getAvailableDoctors']);
+    
+    Route::get('/checkups', [CheckupController::class, 'showAll'])->middleware('admin-only');
+    Route::get('/checkups/doctor', [CheckupController::class, 'showForDoctor']);
+    Route::get('/checkups/patient', [CheckupController::class, 'showForPatient']);
+    Route::get('/checkups/{id}', [CheckupController::class, 'showById'])->middleware('checkup-owner');
+    Route::post('/checkups', [CheckupController::class, 'store']);
+    Route::patch('/checkups/{id}', [CheckupController::class, 'update'])->middleware('checkup-owner');
+    Route::patch('/checkups/status/{id}', [CheckupController::class, 'updateStatus'])->middleware('admin-or-doctor');
+    Route::delete('/checkups/{id}', [CheckupController::class, 'destroy'])->middleware('checkup-owner');
 
     Route::get('/medicines', [MedicineController::class, 'index'])->middleware('admin-or-doctor');
     Route::get('/medicines/{id}', [MedicineController::class, 'show'])->middleware('admin-or-doctor');

@@ -44,6 +44,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::patch('/comments/{id}', [CommentController::class, 'update'])->middleware('comment-owner');
     Route::delete('/comments/{id}', [CommentController::class, 'destroy'])->middleware('comment-owner');
 
+    Route::get('/medicines', [MedicineController::class, 'index'])->middleware('admin-or-doctor');
+    Route::get('/medicines/{id}', [MedicineController::class, 'show'])->middleware('admin-or-doctor');
+    Route::post('/medicines', [MedicineController::class, 'store'])->middleware('admin-or-doctor');
+    Route::patch('/medicines/{id}', [MedicineController::class, 'update'])->middleware('admin-or-doctor');
+    Route::delete('/medicines/{id}', [MedicineController::class, 'destroy'])->middleware('admin-or-doctor');
+
     Route::get('/prescriptions', [PrescriptionController::class, 'index'])->middleware('admin-or-doctor');
     Route::get('/prescriptions/{id}', [PrescriptionController::class, 'show'])->middleware('admin-or-doctor');
     Route::post('/prescriptions', [PrescriptionController::class, 'store'])->middleware('admin-or-doctor');

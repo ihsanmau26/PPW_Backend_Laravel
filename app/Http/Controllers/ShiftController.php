@@ -59,7 +59,7 @@ class ShiftController extends Controller
 
     public function destroy($id)
     {
-        $shift = Shift::find($id);
+        $shift = Shift::findOrFail($id);
 
         if (!$shift) {
             return response()->json(['message' => 'Shift not found'], 404);

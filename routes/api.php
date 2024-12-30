@@ -32,7 +32,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/change-password', [PasswordController::class, 'changePassword'])->middleware('account-owner');
 
     Route::get('/users/admins', [UserController::class, 'indexAdmins'])->middleware('admin-only');
+    Route::get('/users/doctors', [UserController::class, 'indexDoctors'])->middleware('admin-only');
     Route::get('/users/admins/{id}', [UserController::class, 'showAdmin'])->middleware('admin-only');
+    Route::get('/users/doctors/{id}', [UserController::class, 'showDoctor'])->middleware('account-owner');
+    Route::post('/users/doctors', [UserController::class, 'storeDoctor'])->middleware('admin-only');
+    Route::patch('/users/doctors/{id}', [UserController::class, 'editDoctor'])->middleware('account-owner');
+    Route::delete('/users/doctors/{id}', [UserController::class, 'deleteDoctor'])->middleware('admin-only');
 
     Route::get('/articles', [ArticleController::class, 'index']);
     Route::get('/articles/{id}', [ArticleController::class, 'show']);
@@ -43,6 +48,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/comments', [CommentController::class, 'store']);
     Route::patch('/comments/{id}', [CommentController::class, 'update'])->middleware('comment-owner');
     Route::delete('/comments/{id}', [CommentController::class, 'destroy'])->middleware('comment-owner');
+
+    Route::get('/available-doctors', [DoctorController::class, 'getAvailableDoctors']);
 
     Route::get('/medicines', [MedicineController::class, 'index'])->middleware('admin-or-doctor');
     Route::get('/medicines/{id}', [MedicineController::class, 'show'])->middleware('admin-or-doctor');

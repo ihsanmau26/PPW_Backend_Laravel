@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\PDFController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ShiftController;
 use App\Http\Controllers\DoctorController;
@@ -101,4 +102,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/checkup-histories', [CheckupHistoryController::class, 'store'])->middleware('checkup-history-owner');
     Route::patch('/checkup-histories/{id}', [CheckupHistoryController::class, 'update'])->middleware('checkup-history-owner');
     Route::delete('/checkup-histories/{id}', [CheckupHistoryController::class, 'destroy'])->middleware('checkup-history-owner');
+
+    Route::get('/checkup-histories/{id}/prescription-pdf', [PDFController::class, 'prescriptionPDF'])->middleware('checkup-history-owner');
+    Route::get('/checkup-histories/{id}/sick-leave-letter-pdf', [PDFController::class, 'sickLeaveLetterPDF'])->middleware('checkup-history-owner');
 });
